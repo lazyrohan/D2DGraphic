@@ -40,20 +40,7 @@ HRESULT CAshrMain::Initialize(HWND hShowWnd)
 
 	hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &mpFactory);
 	//Create rander target
-	if (SUCCEEDED(hr))
-	{
-		RECT rc;
-		GetClientRect(mHwnd, &rc);
-		D2D1_SIZE_U size = D2D1::SizeU(rc.right - rc.left, rc.bottom - rc.top);
-		hr = mpFactory->CreateHwndRenderTarget(D2D1::RenderTargetProperties(), D2D1::HwndRenderTargetProperties(mHwnd, size), &mpRendertarget);
-		if (FAILED(hr))
-		{
-			MessageBox(NULL, L"Render target failed", L"GO", MB_YESNO);
-			return hr;
-		}
-
-	}
-	else
+	if (FAILED(hr))
 	{
 		MessageBox(NULL, L"Factory failed", L"wrong", MB_YESNO);
 	}
@@ -104,7 +91,7 @@ HRESULT CAshrMain::CreateDefaultWnd()
 		NULL,
 		NULL,
 		HINST_THISCOMPONENT,
-		NULL);
+		this);
 	DWORD er = GetLastError();
 	CString str = "";
 	str.Format(L"%d", er);
@@ -149,15 +136,15 @@ LRESULT CAshrMain::WndProc(HWND hwnd, UINT msg, WPARAM wpm, LPARAM lpm)
 				GWLP_USERDATA
 			)));
 
-		if (true)
+		if (pDemoApp)
 		{
 			switch (msg)
 			{
-				//MessageBox(NULL, L"Hi there switch", L"GO", MB_YESNO);
+				MessageBox(NULL, L"Hi there switch", L"GO", MB_YESNO);
 			case WM_SIZE:
 			{
 				//MessageBox(NULL, L"Hi there size", L"GO", MB_YESNO);
-				pDemoApp->OnResize(lpm);
+				//pDemoApp->OnResize(lpm);
 			}
 			break;
 
@@ -170,7 +157,7 @@ LRESULT CAshrMain::WndProc(HWND hwnd, UINT msg, WPARAM wpm, LPARAM lpm)
 			case WM_PAINT:
 			{
 				//MessageBox(NULL, L"Hi there paint", L"GO", MB_YESNO);
-				//pDemoApp->OnDrawing();
+				pDemoApp->OnDrawing(hwnd);
 				ValidateRect(hwnd, NULL);
 			}
 			break;
@@ -192,26 +179,29 @@ LRESULT CAshrMain::WndProc(HWND hwnd, UINT msg, WPARAM wpm, LPARAM lpm)
 
 }
 
-void CAshrMain::OnDrawing()
+void CAshrMain::OnDrawing(HWND hwd)
 {
 	HRESULT hr = S_OK;
+	ID2D1HwndRenderTarget* rt = NULL;
+
 	if (!mpRendertarget)
 	{
 		//MessageBox(NULL, L"Invalid render target", L"ParameterWrong", MB_YESNO);
 		RECT rc;
-		GetClientRect(mHwnd, &rc);
+		GetClientRect(hwd, &rc);
 		D2D1_SIZE_U size = D2D1::SizeU(rc.right - rc.left, rc.bottom - rc.top);
-		hr = mpFactory->CreateHwndRenderTarget(D2D1::RenderTargetProperties(), D2D1::HwndRenderTargetProperties(mHwnd, size), &mpRendertarget);
+		
+		hr = mpFactory->CreateHwndRenderTarget(D2D1::RenderTargetProperties(), D2D1::HwndRenderTargetProperties(hwd, size), &rt);
 	}
 
 	
 	//Create resource 
 	ID2D1SolidColorBrush* pbrush = NULL;
-	hr = mpRendertarget->CreateSolidColorBrush(D2D1::ColorF::ColorF(100.0f, 200.0f, 100.0f, 1.0f), &pbrush);
-	mpRendertarget->BeginDraw();
-	mpRendertarget->FillRectangle(D2D1::RectF(0.0f, 0.0f, 100.0f, 100.0f), pbrush);
-	mpRendertarget->DrawRectangle(D2D1::RectF(0.0f, 0.0f, 100.0f, 100.0f), pbrush);
-	mpRendertarget->EndDraw();
+	hr = rt->CreateSolidColorBrush(D2D1::ColorF::ColorF(100.0f, 200.0f, 100.0f, 1.0f), &pbrush);
+	rt->BeginDraw();
+	rt->FillRectangle(D2D1::RectF(0.0f, 0.0f, 100.0f, 100.0f), pbrush);
+	rt->DrawRectangle(D2D1::RectF(0.0f, 0.0f, 100.0f, 100.0f), pbrush);
+	rt->EndDraw();
 }
 
 void CAshrMain::OnResize(LPARAM lpm)

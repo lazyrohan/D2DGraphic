@@ -65,7 +65,7 @@ public:
 private:
 	HRESULT CreateDefaultWnd( );
 	static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wpm, LPARAM lpm);
-	void OnDrawing();
+	void OnDrawing(HWND hwd);
 	void OnResize(LPARAM lpm);
 
 private:
