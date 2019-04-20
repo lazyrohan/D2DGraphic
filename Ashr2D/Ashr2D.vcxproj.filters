@@ -41,6 +41,9 @@
     <ClCompile Include="CAshrMain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\tst\tst\tst.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Ashr2D.rc">
@@ -57,5 +60,6 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="Callback function.txt" />
+    <Text Include="D2D.txt" />
   </ItemGroup>
 </Project>

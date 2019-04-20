@@ -20,14 +20,15 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	HeapSetInformation(NULL, HeapEnableTerminationOnCorruption, NULL, 0);
 	if (SUCCEEDED(CoInitialize(NULL)))
 	{
-		CAshrMain *tmain=new CAshrMain();
-		if (SUCCEEDED(tmain->Initialize()))
+		CAshrMain tmain= CAshrMain();
+		if (SUCCEEDED(tmain.Initialize()))
 		{
-			tmain->MsgProc();
+			tmain.MsgProc();
 		}
 		
 		CoUninitialize();
 	}
 	
+	return 0;
 }
 

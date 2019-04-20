@@ -12,6 +12,7 @@ Dfine basic Driect2D initialize function and provide interface for graphic drawi
 #include <memory.h>
 #include <wchar.h>
 #include <math.h>
+#include <vector>
 //Driect2D libs
 #include <d2d1.h>
 #include <d2d1helper.h>
@@ -60,18 +61,22 @@ public:
 public:
 	HRESULT Initialize(HWND hShowWnd=NULL);
 	int MsgProc();
+	//Resource created for each scene, open public interface for use
+	HRESULT CreateDevDependRes(HWND hwd);
 
 	//Create default window if not exist 
 private:
 	HRESULT CreateDefaultWnd( );
 	static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wpm, LPARAM lpm);
-	void OnDrawing(HWND hwd);
-	void OnResize(LPARAM lpm);
+	HRESULT OnDrawing(HWND hwd);
+	HRESULT OnResize(LPARAM lpm);
+	void ReleaseDevRes(void);
+	
 
 private:
 	HWND mHwnd;
 	ID2D1Factory* mpFactory;
 	ID2D1HwndRenderTarget* mpRendertarget;
-
+	std::vector < ID2D1SolidColorBrush*> mpBrushList;
 };
 

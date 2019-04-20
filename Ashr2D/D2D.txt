@@ -1,0 +1,15 @@
+The Direct2D Render Loop
+Regardless of what you draw, your program should perform a loop similar to following.
+
+1. Create device-independent resources.
+2. Render the scene.
+a.Check if a valid render target exists. If not, create the render target and the device-dependent resources.
+b.Call ID2D1RenderTarget::BeginDraw.
+c.Issue drawing commands.
+d.Call ID2D1RenderTarget::EndDraw.
+e.If EndDraw returns D2DERR_RECREATE_TARGET, discard the render target and device-dependent resources.
+3. Repeat step 2 whenever you need to update or redraw the scene.
+
+If the render target is a window, step 2 occurs whenever the window receives a WM_PAINT message.
+
+The loop shown here handles device loss by discarding the device-dependent resources and re-creating them at the start of the next loop (step 2a).
