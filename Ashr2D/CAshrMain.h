@@ -22,6 +22,7 @@ Dfine basic Driect2D initialize function and provide interface for graphic drawi
 
 #pragma comment(lib,"d2d1")
 #pragma comment(lib,"dwrite")
+#pragma comment(lib,"windowscodecs.lib")
 
 //Safe release function. need?
 template <class Interface> 
@@ -63,20 +64,62 @@ public:
 	int MsgProc();
 	//Resource created for each scene, open public interface for use
 	HRESULT CreateDevDependRes(HWND hwd);
-
-	//Create default window if not exist 
+	HRESULT CreateIndependRes(void);
+	// Load image
+	HRESULT LoadImgFromFile(LPCWSTR filename);
+	
 private:
+	//Create default window if not exist 
 	HRESULT CreateDefaultWnd( );
 	static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wpm, LPARAM lpm);
 	HRESULT OnDrawing(HWND hwd);
 	HRESULT OnResize(LPARAM lpm);
+	HRESULT OnMouseMove(LPARAM lpm,WPARAM wpm);
+	HRESULT OnLbtnDown(LPARAM lpm, WPARAM wpm);
+	void OnLbtnUp();
 	void ReleaseDevRes(void);
+	void ReleaseIndependRes(void);
+	D2D1_POINT_2F CaptureMousePos(LPARAM lpm);
+	void DrawRegPolygon(int sides, float radius,D2D1_POINT_2F centerPos);
+	//int sides, float radius=1.0f,D2D1_POINT_2F centerPos=D2D1::Point2F(100.0f,100.0f
 	
 
 private:
 	HWND mHwnd;
 	ID2D1Factory* mpFactory;
+	IWICImagingFactory* mpWICFactory;
+	IDWriteFactory* mpWriteFactory;
+	IDWriteTextFormat* mpTextFmt;
 	ID2D1HwndRenderTarget* mpRendertarget;
+	ID2D1Bitmap* mpBitmap;
 	std::vector < ID2D1SolidColorBrush*> mpBrushList;
+	D2D1_POINT_2F mMousePos;
+	D2D1_RECT_F mMouseMoveRC;
 };
 
+namespace Ashr
+{
+	namespace UI
+	{
+		class RootWnd
+		{
+
+		};
+
+		class MainWnd : public RootWnd
+		{
+		};
+
+		class ImageWnd : public RootWnd
+		{
+		};
+
+		class TextWnd : public RootWnd
+		{
+		};
+
+		class ButtonWnd : public RootWnd
+		{
+		};
+	}
+}
