@@ -222,6 +222,8 @@ HRESULT CAshrMain::OnDrawing(HWND hwd)
 
 		mpRendertarget->BeginDraw();
 		mpRendertarget->Clear(D2D1::ColorF(0.0f, 0.05f, 0.0f, 1.0f)); //[0.0 1.0]
+		UINT32 slen = infoStr.GetLength();
+		mpRendertarget->DrawTextW(infoStr, slen, mpTextFmt, D2D1::RectF(10.0f,10.0f,800.0f,20.0f), mpBrushList[0], D2D1_DRAW_TEXT_OPTIONS_ENABLE_COLOR_FONT, DWRITE_MEASURING_MODE_NATURAL);
 		//mpRendertarget->FillRectangle(D2D1::RectF(210.0f, 210.0f, 400.0f, 400.0f), mpBrushList[0]);
 
 		//for (int i = 0; i < 40; i++)
@@ -251,7 +253,7 @@ HRESULT CAshrMain::OnDrawing(HWND hwd)
 		//	}
 		//}
 
-		DrawRegPolygon(12, 100.0f, D2D1::Point2F(300.0f, 300.0f));
+		DrawRegPolygon(9, 100.0f, 300.0f, 300.0f);
 
 		if (mMouseMoveRC.right * mMouseMoveRC.bottom != 0.0f)
 		{
@@ -262,7 +264,6 @@ HRESULT CAshrMain::OnDrawing(HWND hwd)
 		const wchar_t* wstr = L"Text rendered by DirectWrite和中文输出.";
 		UINT32 strlen = wcslen(wstr);
 		mpRendertarget->DrawTextW(wstr, strlen, mpTextFmt, mMouseMoveRC, mpBrushList[0], D2D1_DRAW_TEXT_OPTIONS_ENABLE_COLOR_FONT, DWRITE_MEASURING_MODE_NATURAL);
-
 			
 		hr = mpRendertarget->EndDraw();
 
@@ -348,18 +349,18 @@ D2D1_POINT_2F CAshrMain::CaptureMousePos(LPARAM lpm)
 	return mpos;
 }
 
-void CAshrMain::DrawRegPolygon(int sides, float radius, D2D1_POINT_2F centerPos)
+void CAshrMain::DrawRegPolygon(int sides, float radius, float centerx, float centery)
 {
 	//Check parameters
 	if (sides < 2 || radius <= 0)
 		return;
-	if (radius>centerPos.x)
+	if (radius>centerx)
 	{
-		centerPos.x = radius;
+		centerx = radius;
 	}
-	if (radius>centerPos.y)
+	if (radius>centery)
 	{
-		centerPos.y = radius;
+		centery = radius;
 	}
 
 // Fill points series
@@ -368,13 +369,13 @@ void CAshrMain::DrawRegPolygon(int sides, float radius, D2D1_POINT_2F centerPos)
 	for (int i = 0; i <sides; i++)
 	{
 		double angle = (2.0 *i / sides + 1.0 / sides)*3.14159;
-		polyPoints.push_back(D2D1::Point2F(centerPos.x-radius*sin(angle),centerPos.y+radius*cos(angle)));
+		polyPoints.push_back(D2D1::Point2F(centerx-radius*sin(angle),centery+radius*cos(angle)));
 		
 	}
 
 	const wchar_t* wstr = L"C";
 	UINT32 strlen = wcslen(wstr);
-	D2D1_RECT_F rc = D2D1::RectF(centerPos.x, centerPos.y, 10, 10);
+	D2D1_RECT_F rc = D2D1::RectF(centerx, centery, centerx+10, centery );
 	mpRendertarget->DrawTextW(wstr, strlen, mpTextFmt, rc, mpBrushList[0], D2D1_DRAW_TEXT_OPTIONS_ENABLE_COLOR_FONT, DWRITE_MEASURING_MODE_NATURAL);
 	// Draw lines
 	wstr = L"P";
@@ -384,9 +385,9 @@ void CAshrMain::DrawRegPolygon(int sides, float radius, D2D1_POINT_2F centerPos)
 		
 		for (int i=0;i<sides;i++)
 		{
-			mpRendertarget->DrawLine(centerPos, polyPoints[i], mpBrushList[0]);
+			mpRendertarget->DrawLine(D2D1::Point2F(centerx,centery), polyPoints[i], mpBrushList[0]);
 			mpRendertarget->DrawLine(polyPoints[i], polyPoints[(i+1==sides?0:i+1)], mpBrushList[0]);
-			rc= D2D1::RectF(polyPoints[i].x, polyPoints[i].y, 10, 10);
+			rc= D2D1::RectF(polyPoints[i].x, polyPoints[i].y, polyPoints[i].x+10, polyPoints[i].y);
 			mpRendertarget->DrawTextW(wstr, strlen, mpTextFmt, rc, mpBrushList[0], D2D1_DRAW_TEXT_OPTIONS_ENABLE_COLOR_FONT, DWRITE_MEASURING_MODE_NATURAL);
 		}
 
@@ -405,13 +406,17 @@ HRESULT CAshrMain::CreateDevDependRes(HWND hwd)
 	}
 	HRESULT hr = S_OK;
 
-	if (!mpRendertarget)
+	if (mpFactory&&!mpRendertarget)
 	{
 		//MessageBox(NULL, L"Invalid render target", L"ParameterWrong", MB_YESNO);
 		RECT rc;
 		GetClientRect(hwd, &rc);
-		D2D1_SIZE_U size = D2D1::SizeU(rc.right - rc.left, rc.bottom - rc.top);
-
+		float DPIx, DPIy = 0;
+		mpFactory->GetDesktopDpi(&DPIx, &DPIy);
+		int desktopx = GetSystemMetrics(SM_CXSCREEN);
+		int desktopy = GetSystemMetrics(SM_CYSCREEN);
+		infoStr.Format(L"Screen size from GetSystemMetircs.x:%d,y:%d", desktopx, desktopy);
+		D2D1_SIZE_U size = D2D1::SizeU(rc.right-rc.left,rc.bottom-rc.top);	
 		hr = mpFactory->CreateHwndRenderTarget(D2D1::RenderTargetProperties(), D2D1::HwndRenderTargetProperties(hwd, size), &mpRendertarget);
 	}
 
@@ -479,7 +484,7 @@ Initialize D2D
 	hr = mpWriteFactory->CreateTextFormat(L"Calibri",NULL,DWRITE_FONT_WEIGHT_REGULAR,DWRITE_FONT_STYLE_NORMAL,DWRITE_FONT_STRETCH_NORMAL,18.0f,L"en-us",&mpTextFmt);
 	if (SUCCEEDED(hr))
 	{
-		hr = mpTextFmt->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+		hr = mpTextFmt->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
 	}
 
 	if (SUCCEEDED(hr))
@@ -531,6 +536,15 @@ HRESULT CAshrMain::LoadImgFromFile(LPCWSTR filename)
 	SafeRelease(&pFrmDecode);
 	SafeRelease(&pDecoder);
 	return hr;
+}
+
+void CAshrMain::TextDraw(void)
+{
+	//Define text format
+	if (mpFactory)
+	{
+		
+	}
 }
 
 

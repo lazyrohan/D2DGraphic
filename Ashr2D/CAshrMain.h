@@ -67,6 +67,7 @@ public:
 	HRESULT CreateIndependRes(void);
 	// Load image
 	HRESULT LoadImgFromFile(LPCWSTR filename);
+	void TextDraw(void);
 	
 private:
 	//Create default window if not exist 
@@ -80,8 +81,7 @@ private:
 	void ReleaseDevRes(void);
 	void ReleaseIndependRes(void);
 	D2D1_POINT_2F CaptureMousePos(LPARAM lpm);
-	void DrawRegPolygon(int sides, float radius,D2D1_POINT_2F centerPos);
-	//int sides, float radius=1.0f,D2D1_POINT_2F centerPos=D2D1::Point2F(100.0f,100.0f
+	void DrawRegPolygon(int sides, float radius = 10.0f, float centerx=10.0f,float centery=10.0f);
 	
 
 private:
@@ -95,6 +95,7 @@ private:
 	std::vector < ID2D1SolidColorBrush*> mpBrushList;
 	D2D1_POINT_2F mMousePos;
 	D2D1_RECT_F mMouseMoveRC;
+	CString infoStr;
 };
 
 namespace Ashr
